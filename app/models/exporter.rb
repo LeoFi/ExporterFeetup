@@ -23,7 +23,7 @@ class Exporter
       xml.orders { build_orders_xml(xml, orders) }
     end
 
-    upload(payload.to_xml)
+    upload(shop.name, payload.to_xml)
 
     ShopifyAPI::Base.clear_session
   end
@@ -72,7 +72,7 @@ class Exporter
     end
   end
 
-  def upload(payload)
+  def upload(shop_name, payload)
     file = Tempfile.new('temp-export')
     file.write(payload)
     file.close
@@ -81,11 +81,9 @@ class Exporter
       HOSTNAME,
       USERNAME,
       password: PASSWORD,
-      port: PORT,
-      host_name: HOSTNAME
+      port: PORT
     ) do |sftp|
-      filename = Time.now.to_datetime.to_s
-      sftp.upload!(file.path, "#{filename}.xml")
+      filename = "#{shop_name}_" + Time.now.strftime('%Y-%m-%dT%H.%M.%S')
       sftp.upload!(file.path, "Testordner/#{filename}.xml")
     end
 

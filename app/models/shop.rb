@@ -7,4 +7,8 @@ class Shop < ActiveRecord::Base
     params ||= { status: :any }
     ShopifyAPI::Order.find(:all, params: params)
   end
+
+  def name
+    shopify_domain.split('.').first
+  end
 end
