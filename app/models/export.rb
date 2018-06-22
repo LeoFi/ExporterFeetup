@@ -5,6 +5,7 @@ class Export < ApplicationRecord
 
   def self.available_exports(time = nil)
     time ||= Time.zone.now.strftime('%H:00')
+    puts "Checking for time: #{time}"
     where(time: time)
   end
 end

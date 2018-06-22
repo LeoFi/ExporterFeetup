@@ -18,6 +18,7 @@ class Exporter
     active_session_for(shop)
 
     orders = shop.orders(status: :open, financial_status: :paid)
+    puts "Exporting for shop: #{shop.attributes}"
     payload = Nokogiri::XML::Builder.new do |xml|
       xml.orders { build_orders_xml(xml, orders) }
     end
