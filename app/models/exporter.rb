@@ -19,7 +19,7 @@ class Exporter
     active_session_for(shop)
 
     orders = shop.orders(status: :open, financial_status: :paid)
-    payload = Nokogiri::XML::Builder.new do |xml|
+    payload = Nokogiri::XML::Builder.new(encoding: 'UTF-8') do |xml|
       xml.orders { build_orders_xml(xml, orders) }
     end
 
