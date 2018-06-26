@@ -68,7 +68,7 @@ class Exporter
     xml.item do
       xml.send(:SKU, item.sku)
       xml.send(:Bezeichnung, item.name)
-      xml.send(:Menge, item.quantity)
+      xml.send(:Menge, item.quantity.to_f)
     end
   end
 
