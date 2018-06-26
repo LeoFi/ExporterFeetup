@@ -2,10 +2,10 @@ require 'net/sftp'
 require 'tempfile'
 
 class Exporter
-  HOSTNAME = ENV.fetch('TARGET_EXPORT_HOST')
-  USERNAME = ENV.fetch('TARGET_EXPORT_USERNAME')
-  PASSWORD = ENV.fetch('TARGET_EXPORT_PASSWORD')
-  PORT     = ENV.fetch('TARGET_EXPORT_PORT')
+  HOSTNAME = ENV['TARGET_EXPORT_HOST']
+  USERNAME = ENV['TARGET_EXPORT_USERNAME']
+  PORT = ENV['TARGET_EXPORT_PORT']
+  PASSWORD = ENV['TARGET_EXPORT_PASSWORD']
 
   def initialize(exports = [])
     @exports = exports
@@ -23,7 +23,7 @@ class Exporter
       xml.orders { build_orders_xml(xml, orders) }
     end
 
-    upload(shop.name, payload.to_xml)
+    upload(payload.to_xml)
 
     ShopifyAPI::Base.clear_session
   end
@@ -43,7 +43,7 @@ class Exporter
     return unless order.try(:customer).present?
 
     xml.order do
-      xml.send(:Bestellnummer, order.id)
+      xml.send(:Name, "#"order.id)
       xml.send(:Rechnungsnummer)
       xml.send(:Kundennummer, order.customer.default_address.customer_id)
       xml.send(:Name1, customer_name(order.customer))
@@ -72,18 +72,13 @@ class Exporter
     end
   end
 
-  def upload(shop_name, payload)
+  def upload(payload)
     file = Tempfile.new('temp-export')
     file.write(payload)
     file.close
 
-    Net::SFTP.start(
-      HOSTNAME,
-      USERNAME,
-      password: PASSWORD,
-      port: PORT
-    ) do |sftp|
-      filename = "#{shop_name}_" + Time.now.strftime('%Y-%m-%dT%H.%M.%S')
+    Net::SFTP.start(HOSTNAME, USERNAME, password: PASSWORD, port: PORT) do |sftp|
+      filename = Time.now.to_datetime.to_s
       sftp.upload!(file.path, "Testordner/#{filename}.xml")
     end
 
