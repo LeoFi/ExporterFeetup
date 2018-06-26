@@ -43,7 +43,7 @@ class Exporter
     return unless order.try(:customer).present?
 
     xml.order do
-      xml.send(:Name, order.id)
+      xml.send(:Bestellnummer, order.name)
       xml.send(:Rechnungsnummer)
       xml.send(:Kundennummer, order.customer.default_address.customer_id)
       xml.send(:Name1, customer_name(order.customer))
