@@ -79,7 +79,7 @@ class Exporter
 
     Net::SFTP.start(HOSTNAME, USERNAME, password: PASSWORD, port: PORT) do |sftp|
       filename = Time.now.to_datetime.to_s
-      sftp.upload!(file.path, "TST/#{filename}.xml")
+      sftp.upload!(file.path, "Testordner/#{filename}.xml")
     end
 
     file.unlink
