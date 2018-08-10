@@ -76,10 +76,10 @@ class Exporter
     file = Tempfile.new('temp-export')
     file.write(payload)
     file.close
-    
+
     Net::SFTP.start(HOSTNAME, USERNAME, password: PASSWORD, port: PORT) do |sftp|
       filename = Time.now.to_datetime.to_s
-      sftp.upload!(file.path, "Testordner/#{filename}.xml")
+      sftp.upload!(file.path, "/Testordner/#{filename}.xml")
     end
 
     file.unlink
