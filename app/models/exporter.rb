@@ -78,7 +78,8 @@ class Exporter
     file.close
 
     Net::SFTP.start(HOSTNAME, USERNAME, password: PASSWORD, port: PORT) do |sftp|
-      filename = Time.now.to_datetime.to_s
+      # filename = Time.now.to_datetime.to_s
+      filename = Time.now.strftime("%Y%m%dT%H%M%S%z")
       sftp.upload!(file.path, "/Testordner/#{filename}.xml")
     end
 
