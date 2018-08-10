@@ -23,7 +23,10 @@ class Exporter
       xml.orders { build_orders_xml(xml, orders) }
     end
 
-    upload(payload.to_xml)
+    begin
+      upload(payload.to_xml)
+    rescue
+    end
 
     ShopifyAPI::Base.clear_session
   end
@@ -83,7 +86,7 @@ class Exporter
     end
 
     file.close
-    # file.unlink
+    file.unlink
   end
 
   def customer_name(customer)
