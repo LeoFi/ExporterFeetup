@@ -78,12 +78,12 @@ class Exporter
 
     Net::SFTP.start(HOSTNAME, USERNAME, password: PASSWORD, port: PORT) do |sftp|
       # filename = Time.now.to_datetime.to_s
-      filename = Time.now.strftime("%Y%m%dT%H%M%S%z")
-      sftp.upload!(file.path, "/Testordner/#{filename}.xml")
+      filename = Time.now.strftime("%Y-%m-%dT%H.%M.%S")
+      sftp.upload!(file.path, "/Testordner/feetup_#{filename}.xml")
     end
 
     file.close
-    file.unlink
+    # file.unlink
   end
 
   def customer_name(customer)
