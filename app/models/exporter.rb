@@ -20,10 +20,10 @@ class Exporter
 
     exported_order_ids = shop.exported_orders.map { |order| order.shopify_order_id }
     orders = shop.orders(status: :open, financial_status: :paid)
-    logger.info "All orders: #{orders.size}"
+    Rails.logger.info "All orders: #{orders.size}"
 
     orders.delete_if { |order| exported_order_ids.include?(order.id) }
-    logger.info "New orders: #{ orders.size }"
+    Rails.logger.info "New orders: #{ orders.size }"
 
     unless orders.empty?
       payload = Nokogiri::XML::Builder.new(encoding: 'UTF-8') do |xml|
