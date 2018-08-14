@@ -93,6 +93,8 @@ class Exporter
   end
 
   def upload(payload)
+    Rails.logger.info payload.inspect
+
     file = Tempfile.new('temp-export')
     file.write(payload)
 
