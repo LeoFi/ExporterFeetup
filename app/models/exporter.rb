@@ -57,10 +57,10 @@ class Exporter
   end
 
   def build_xml_for_order(xml, order)
-    Rails.logger.info "order: #{order.inspect}"
-    Rails.logger.info "customer: #{order.try(:customer).present?}"
-
     return unless order.try(:customer).present?
+
+    Rails.logger.info "order.id: #{order.id}"
+    Rails.logger.info "order.name: #{order.name}"
 
     xml.order do
       xml.send(:Bestellnummer, order.name)
