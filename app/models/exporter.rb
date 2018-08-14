@@ -22,20 +22,23 @@ class Exporter
     orders = shop.orders(status: :open, financial_status: :paid)
     orders.delete_if { |order| exported_order_ids.include?(order.id) }
 
-    payload = Nokogiri::XML::Builder.new(encoding: 'UTF-8') do |xml|
-      xml.orders { build_orders_xml(xml, orders) }
+    unless orders.empty?
+      payload = Nokogiri::XML::Builder.new(encoding: 'UTF-8') do |xml|
+        xml.orders { build_orders_xml(xml, orders) }
+      end
+
+      begin
+        upload(payload.to_xml)
+      rescue
+        # Just to avoid IOError (closed stream) IOError
+        # TODO Track down the root cause of the error
+      end
+
+      orders.each do |order|
+        ExportedOrder.create(shop_id: shop.id, shopify_order_id: order.id)
+      end
     end
 
-    begin
-      upload(payload.to_xml)
-    rescue
-      # Just to avoid IOError (closed stream) IOError
-      # TODO Track down the root cause of the error
-    end
-
-    orders.each do |order|
-      ExportedOrder.create(shop_id: shop.id, shopify_order_id: order.id)
-    end
     ShopifyAPI::Base.clear_session
   end
 
