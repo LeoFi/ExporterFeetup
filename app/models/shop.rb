@@ -2,6 +2,7 @@ class Shop < ActiveRecord::Base
   include ShopifyApp::SessionStorage
 
   has_many :exports
+  has_many :exported_orders
 
   def orders(params = nil)
     params ||= { status: :any }
