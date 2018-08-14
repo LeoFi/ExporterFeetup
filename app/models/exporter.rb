@@ -87,14 +87,18 @@ class Exporter
   def upload(payload)
     file = Tempfile.new('temp-export')
     file.write(payload)
+    file.close
 
-    Net::SFTP.start(HOSTNAME, USERNAME, password: PASSWORD, port: PORT) do |sftp|
-      # filename = Time.now.to_datetime.to_s
-      filename = Time.now.strftime("%Y-%m-%dT%H.%M.%S")
-      sftp.upload!(file.path, "/Testordner/feetup_#{filename}.xml")
+    begin
+      Net::SFTP.start(HOSTNAME, USERNAME, password: PASSWORD, port: PORT) do |sftp|
+        # filename = Time.now.to_datetime.to_s
+        filename = Time.now.strftime("%Y-%m-%dT%H.%M.%S")
+        sftp.upload!(file.path, "/Testordner/feetup_#{filename}.xml")
+      end
+    rescue IOError => e
+      Rails.logger.error e.message
     end
 
-    file.close
     file.unlink
   end
 
