@@ -30,12 +30,7 @@ class Exporter
         xml.orders { build_orders_xml(xml, orders) }
       end
 
-      begin
-        upload(payload.to_xml)
-      rescue
-        # Just to avoid IOError (closed stream) IOError
-        # TODO Track down the root cause of the error
-      end
+      upload(payload.to_xml)
 
       orders.each do |order|
         ExportedOrder.create(shop_id: shop.id, shopify_order_id: order.id)
@@ -58,9 +53,6 @@ class Exporter
 
   def build_xml_for_order(xml, order)
     return unless order.try(:customer).present?
-
-    Rails.logger.info "order.id: #{order.id}"
-    Rails.logger.info "order.name: #{order.name}"
 
     xml.order do
       xml.send(:Bestellnummer, order.name)
@@ -93,8 +85,6 @@ class Exporter
   end
 
   def upload(payload)
-    Rails.logger.info payload.inspect
-
     file = Tempfile.new('temp-export')
     file.write(payload)
 
