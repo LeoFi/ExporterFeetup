@@ -88,8 +88,8 @@ class Exporter
 
     begin
       Net::SFTP.start(HOSTNAME, USERNAME, password: PASSWORD, port: PORT) do |sftp|
-        # filename = Time.now.to_datetime.to_s
-        filename = Time.now.strftime("%Y-%m-%dT%H.%M.%S")
+        tz = TZInfo::Timezone.get("Europe/Berlin")
+        filename = tz.utc_to_local(Time.now.utc).strftime("%Y-%m-%d-%H%M%S")
         sftp.upload!(file.path, "/Testordner/feetup_#{filename}.xml")
       end
     rescue IOError => e
