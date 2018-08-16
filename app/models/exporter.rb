@@ -27,7 +27,7 @@ class Exporter
         xml.orders { build_orders_xml(xml, orders) }
       end
 
-      upload(payload.to_xml)
+      upload(shop, payload.to_xml)
 
       orders.each do |order|
         ExportedOrder.create(shop_id: shop.id, shopify_order_id: order.id)
@@ -81,7 +81,7 @@ class Exporter
     end
   end
 
-  def upload(payload)
+  def upload(shop, payload)
     file = Tempfile.new('temp-export')
     file.write(payload)
     file.close
@@ -90,7 +90,7 @@ class Exporter
       Net::SFTP.start(HOSTNAME, USERNAME, password: PASSWORD, port: PORT) do |sftp|
         tz = TZInfo::Timezone.get("Europe/Berlin")
         filename = tz.utc_to_local(Time.now.utc).strftime("%Y-%m-%d-%H%M%S")
-        sftp.upload!(file.path, "/Testordner/feetup_#{filename}.xml")
+        sftp.upload!(file.path, "/Testordner/feetup_#{shop.id}_#{filename}.xml")
       end
     rescue IOError => e
       Rails.logger.error e.message
