@@ -90,14 +90,10 @@ class Exporter
       Net::SFTP.start(HOSTNAME, USERNAME, password: PASSWORD, port: PORT) do |sftp|
         tz = TZInfo::Timezone.get("Europe/Berlin")
         filename = tz.utc_to_local(Time.now.utc).strftime("%Y-%m-%d-%H%M%S")
-
-        puts "[INFO] filename: #{filename}"
-
         sftp.upload!(file.path, "/Testordner/#{shop.shopify_domain}_#{filename}.xml")
       end
     rescue IOError => e
       Rails.logger.error e.message
-      puts "[ERROR] e.message: #{e.message}"
     end
 
     file.unlink
