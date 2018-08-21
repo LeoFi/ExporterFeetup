@@ -8,7 +8,7 @@ class Export < ApplicationRecord
     tz = TZInfo::Timezone.get("Europe/Berlin")
     time ||= tz.utc_to_local(Time.now.utc).strftime("%k:00")
 
-    puts "[INFO] ExportJob: Checking for time: #{time}"
+    puts "[INFO] ExportJob: #{where(time: time).count} scheduled export(s) found at #{time}"
     where(time: time)
   end
 end
