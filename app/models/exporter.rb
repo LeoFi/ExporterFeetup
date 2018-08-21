@@ -18,12 +18,21 @@ class Exporter
   def run_export(shop)
     active_session_for(shop)
 
+    exported_order_ids = shop.exported_orders.map { |order| order.shopify_order_id }
     orders = shop.orders(status: :open, financial_status: :paid)
-    payload = Nokogiri::XML::Builder.new(encoding: 'UTF-8') do |xml|
-      xml.orders { build_orders_xml(xml, orders) }
-    end
+    # orders.delete_if { |order| exported_order_ids.include?(order.id) }
 
-    upload(payload.to_xml)
+    unless orders.empty?
+      payload = Nokogiri::XML::Builder.new(encoding: 'UTF-8') do |xml|
+        xml.orders { build_orders_xml(xml, orders) }
+      end
+
+      upload(shop, payload.to_xml)
+
+      orders.each do |order|
+        ExportedOrder.create(shop_id: shop.id, shopify_order_id: order.id)
+      end
+    end
 
     ShopifyAPI::Base.clear_session
   end
@@ -72,16 +81,25 @@ class Exporter
     end
   end
 
-  def upload(payload)
+  def upload(shop, payload)
     file = Tempfile.new('temp-export')
     file.write(payload)
+    file.close
 
-    Net::SFTP.start(HOSTNAME, USERNAME, password: PASSWORD, port: PORT) do |sftp|
-      filename = Time.now.to_datetime.to_s
-      sftp.upload!(file.path, "Testordner/#{filename}.xml")
+    begin
+      Net::SFTP.start(HOSTNAME, USERNAME, password: PASSWORD, port: PORT) do |sftp|
+        tz = TZInfo::Timezone.get("Europe/Berlin")
+        filename = tz.utc_to_local(Time.now.utc).strftime("%Y-%m-%d-%H%M%S")
+
+        puts "[INFO] filename: #{filename}"
+
+        sftp.upload!(file.path, "/Testordner/#{shop.shopify_domain}_#{filename}.xml")
+      end
+    rescue IOError => e
+      Rails.logger.error e.message
+      puts "[ERROR] e.message: #{e.message}"
     end
 
-    file.close
     file.unlink
   end
 

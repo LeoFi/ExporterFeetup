@@ -10,7 +10,15 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2018_06_12_115013) do
+ActiveRecord::Schema.define(version: 2018_08_14_035414) do
+
+  create_table "exported_orders", force: :cascade do |t|
+    t.integer "shopify_order_id", null: false
+    t.integer "shop_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["shop_id"], name: "index_exported_orders_on_shop_id"
+  end
 
   create_table "exports", force: :cascade do |t|
     t.datetime "created_at", null: false

@@ -17,7 +17,7 @@
 
   <div>
     <%= f.label :time %>
-    <%= f.select :time, 0.upto(24).map { |i| "#{i}:00" }, placeholder: 'hh:mm' %>
+    <%= f.select :time, 0.upto(23).map { |i| "#{i}:00" }, placeholder: 'hh:mm' %>
   </div>
 
   <div class="actions">
