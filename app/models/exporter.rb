@@ -20,7 +20,9 @@ class Exporter
 
     exported_order_ids = shop.exported_orders.map { |order| order.shopify_order_id }
     orders = shop.orders(status: :open, financial_status: :paid)
-    orders.delete_if { |order| exported_order_ids.include?(order.id) }
+    # orders.delete_if { |order| exported_order_ids.include?(order.id) }
+    orders = orders[0, 1]
+    Rails.logger.error orders.first.inspect
 
     unless orders.empty?
       payload = Nokogiri::XML::Builder.new(encoding: 'UTF-8') do |xml|
@@ -29,9 +31,9 @@ class Exporter
 
       upload(shop, payload.to_xml)
 
-      orders.each do |order|
-        ExportedOrder.create(shop_id: shop.id, shopify_order_id: order.id)
-      end
+      # orders.each do |order|
+      #   ExportedOrder.create(shop_id: shop.id, shopify_order_id: order.id)
+      # end
     end
 
     ShopifyAPI::Base.clear_session
