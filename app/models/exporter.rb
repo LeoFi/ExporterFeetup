@@ -26,7 +26,7 @@ class Exporter
     order = orders.first
     Rails.logger.error order.shipping_address.country + "(#{ order.shipping_address.country_code })"
 
-    country = Country[order.shipping_address.country_code]
+    country = ISO3166::Country.new(order.shipping_address.country_code)
     Rails.logger.error "in_eu?: #{ country.in_eu? }"
 
     unless orders.empty?
