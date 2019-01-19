@@ -23,7 +23,6 @@ class Exporter
     exported_order_ids = shop.exported_orders.map { |order| order.shopify_order_id }
     orders = shop.orders(status: :open, financial_status: :paid)
     # orders.delete_if { |order| exported_order_ids.include?(order.id) } # TODO put this back
-    orders = orders[0, 10] # TODO remove this
 
     orders_from_eu = orders_by_region(orders, true)
     upload_xml(orders_from_eu, shop.shopify_domain, "/EU")
