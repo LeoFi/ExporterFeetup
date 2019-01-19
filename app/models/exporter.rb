@@ -7,6 +7,8 @@ class Exporter
   PORT = ENV['TARGET_EXPORT_PORT']
   PASSWORD = ENV['TARGET_EXPORT_PASSWORD']
 
+  FTP_PATH = "/Testordner"
+
   def initialize(exports = [])
     @exports = exports
   end
@@ -20,31 +22,47 @@ class Exporter
 
     exported_order_ids = shop.exported_orders.map { |order| order.shopify_order_id }
     orders = shop.orders(status: :open, financial_status: :paid)
-    # orders.delete_if { |order| exported_order_ids.include?(order.id) }
-    orders = orders[0, 1]
+    # orders.delete_if { |order| exported_order_ids.include?(order.id) } # TODO put this back
+    orders = orders[0, 10] # TODO remove this
 
-    order = orders.first
-    Rails.logger.error order.shipping_address.country + "(#{ order.shipping_address.country_code })"
+    orders_from_eu = orders_by_region(orders, true)
+    upload_xml(orders_from_eu, shop.shopify_domain, "/EU")
 
-    country = ISO3166::Country.new(order.shipping_address.country_code)
-    Rails.logger.error "in_eu?: #{ country.in_eu? }"
-
-    unless orders.empty?
-      payload = Nokogiri::XML::Builder.new(encoding: 'UTF-8') do |xml|
-        xml.orders { build_orders_xml(xml, orders) }
-      end
-
-      upload(shop, payload.to_xml)
-
-      # orders.each do |order|
-      #   ExportedOrder.create(shop_id: shop.id, shopify_order_id: order.id)
-      # end
-    end
+    orders_from_rest_of_world = orders_by_region(orders, false)
+    upload_xm(orders_from_rest_of_world, shop.shopify_domain, "Non-EU")
 
     ShopifyAPI::Base.clear_session
   end
 
   private
+
+  def upload_xml(orders, shop_name, directory)
+    unless orders.empty?
+      payload = Nokogiri::XML::Builder.new(encoding: 'UTF-8') do |xml|
+        xml.orders { build_orders_xml(xml, orders) }
+      end
+
+      # upload(shop, payload.to_xml)
+      tz = TZInfo::Timezone.get("Europe/Berlin")
+      timestamp = tz.utc_to_local(Time.now.utc).strftime("%Y-%m-%d-%H%M%S")
+
+      file_name = "{ directory.upcase }-{ timestamp }-{ shop_name }.xml"
+      file_path = "{ FTP_PATH }{ directory }/{ file_name }"
+      upload(payload.to_xml, file_path)
+
+      # TODO put this back
+      # orders.each do |order|
+      #   ExportedOrder.create(shop_id: shop.id, shopify_order_id: order.id)
+      # end
+    end
+  end
+
+  def orders_by_region(orders, in_eu)
+    orders.select do |order|
+      country = ISO3166::Country.new(order.shipping_address.country_code)
+      country.in_eu? == in_eu
+    end
+  end
 
   def active_session_for(shop)
     session = ShopifyAPI::Session.new(shop.shopify_domain, shop.shopify_token)
@@ -88,16 +106,17 @@ class Exporter
     end
   end
 
-  def upload(shop, payload)
+  def upload(payload, file_path)
     file = Tempfile.new('temp-export')
     file.write(payload)
     file.close
 
     begin
       Net::SFTP.start(HOSTNAME, USERNAME, password: PASSWORD, port: PORT) do |sftp|
-        tz = TZInfo::Timezone.get("Europe/Berlin")
-        filename = tz.utc_to_local(Time.now.utc).strftime("%Y-%m-%d-%H%M%S")
-        sftp.upload!(file.path, "/Testordner/#{shop.shopify_domain}_#{filename}.xml")
+        # tz = TZInfo::Timezone.get("Europe/Berlin")
+        # filename = tz.utc_to_local(Time.now.utc).strftime("%Y-%m-%d-%H%M%S")
+        # sftp.upload!(file.path, "/Testordner/#{shop.shopify_domain}_#{filename}.xml")
+        sftp.upload!(file.path, file_path)
       end
     rescue IOError => e
       Rails.logger.error e.message
