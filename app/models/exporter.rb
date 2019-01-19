@@ -22,7 +22,12 @@ class Exporter
     orders = shop.orders(status: :open, financial_status: :paid)
     # orders.delete_if { |order| exported_order_ids.include?(order.id) }
     orders = orders[0, 1]
-    Rails.logger.error orders.first.to_json
+
+    order = orders.first
+    Rails.logger.error order.shipping_address.country + "(#{ order.shipping_address.country_code })"
+
+    country = Country[order.shipping_address.country_code]
+    Rails.logger.error "in_eu?: #{ country.in_eu? }"
 
     unless orders.empty?
       payload = Nokogiri::XML::Builder.new(encoding: 'UTF-8') do |xml|
