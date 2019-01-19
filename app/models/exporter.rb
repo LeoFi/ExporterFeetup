@@ -46,8 +46,8 @@ class Exporter
       tz = TZInfo::Timezone.get("Europe/Berlin")
       timestamp = tz.utc_to_local(Time.now.utc).strftime("%Y-%m-%d-%H%M%S")
 
-      file_name = "{ directory.upcase }-{ timestamp }-{ shop_name }.xml"
-      file_path = "{ FTP_PATH }{ directory }/{ file_name }"
+      file_name = "#{ directory.upcase }-#{ timestamp }-#{ shop_name }.xml"
+      file_path = FTP_PATH + directory + "/" + file_name
       Rails.logger.error file_path
 
       upload(payload.to_xml, file_path)
