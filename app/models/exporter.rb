@@ -48,6 +48,8 @@ class Exporter
 
       file_name = "{ directory.upcase }-{ timestamp }-{ shop_name }.xml"
       file_path = "{ FTP_PATH }{ directory }/{ file_name }"
+      Rails.logger.error file_path
+
       upload(payload.to_xml, file_path)
 
       # TODO put this back
