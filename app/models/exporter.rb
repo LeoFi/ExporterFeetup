@@ -19,6 +19,7 @@ class Exporter
 
   def run_export(shop)
     active_session_for(shop)
+    Rails.logger.error shop.to_json
 
     exported_order_ids = shop.exported_orders.map { |order| order.shopify_order_id }
     orders = shop.orders(status: :open, financial_status: :paid)
@@ -29,7 +30,7 @@ class Exporter
     upload_xml(orders_from_eu, shop.shopify_domain, "/EU")
 
     orders_from_rest_of_world = orders_by_region(orders, false)
-    upload_xm(orders_from_rest_of_world, shop.shopify_domain, "Non-EU")
+    upload_xml(orders_from_rest_of_world, shop.shopify_domain, "Non-EU")
 
     ShopifyAPI::Base.clear_session
   end
